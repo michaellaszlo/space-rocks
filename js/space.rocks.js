@@ -23,6 +23,21 @@ Sprite.make = function (center, size) {
 	return sprite;
 };
 
+SpaceRocks.keyToAction = {
+  65: 'left', 68: 'right'
+};
+
+SpaceRocks.keydown = function (event) {
+	var global = SpaceRocks;
+  var code = event.keyCode,
+      action = global.keyToAction[code];
+  if (action == 'left') {
+    console.log('left');
+  } else if (action == 'right') {
+    console.log('right');
+  }
+};
+
 SpaceRocks.load = function () {
 	var global = SpaceRocks;
 
@@ -44,6 +59,8 @@ SpaceRocks.load = function () {
 	};
 
 	ship.plainImage.draw(ship.pos, Math.PI/2);
+
+  document.onkeydown = SpaceRocks.keydown;
 };
 
 window.onload = SpaceRocks.load;
