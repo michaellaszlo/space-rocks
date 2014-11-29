@@ -24,18 +24,30 @@ Sprite.make = function (center, size) {
 };
 
 SpaceRocks.keyToAction = {
-  65: 'left', 68: 'right'
+  65: 'left', 68: 'right', 87: 'up'
 };
 
 SpaceRocks.keydown = function (event) {
 	var global = SpaceRocks;
   var code = event.keyCode,
       action = global.keyToAction[code];
+  console.log(code);
   if (action == 'left') {
     console.log('left');
   } else if (action == 'right') {
     console.log('right');
+  } else if (action == 'up') {
+    console.log('up');
   }
+};
+
+SpaceRocks.update = function () {
+	var global = SpaceRocks,
+      canvas = global.canvas,
+      context = global.context,
+      ship = global.ship;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+	ship.plainImage.draw(ship.pos, Math.PI/2);
 };
 
 SpaceRocks.load = function () {
@@ -49,7 +61,7 @@ SpaceRocks.load = function () {
 	SpaceRocks.canvasContainer = canvasContainer;
 	canvasContainer.style.width = global.width + 'px';
 	canvasContainer.style.height = global.height + 'px';
-	var context = Sprite.context = canvas.getContext('2d');
+	var context = Sprite.context = SpaceRocks.context = canvas.getContext('2d');
 
 	var ship = SpaceRocks.ship = {
 		pos: {x: global.width / 2, y: global.height / 2},
@@ -58,9 +70,9 @@ SpaceRocks.load = function () {
 		thrustImage: Sprite.make({x: 70.5, y: 108.5}, {x: 135, y: 63})
 	};
 
-	ship.plainImage.draw(ship.pos, Math.PI/2);
-
   document.onkeydown = SpaceRocks.keydown;
+
+  window.setInterval(SpaceRocks.update, 16.666666);
 };
 
 window.onload = SpaceRocks.load;
