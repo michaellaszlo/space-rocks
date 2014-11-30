@@ -6,6 +6,15 @@ body {
 
 #mainCanvasContainer {
 	border: 2px solid #ccc;
+  position: absolute;
+  top: 10px;
+  left: 60px;
+}
+
+#stopButton {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 }
 
 #mainCanvas {
