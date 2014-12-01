@@ -24,7 +24,7 @@ Sprite.make = function (center, size) {
 };
 
 SpaceRocks.keyToAction = {
-  65: 'left', 68: 'right', 87: 'up'
+  65: 'left', 68: 'right', 87: 'forward'
 };
 SpaceRocks.activeKeys = {};
 
@@ -50,11 +50,25 @@ SpaceRocks.update = function () {
       canvas = global.canvas,
       context = global.context,
       ship = global.ship;
+
+  // Update ship in response to user input.
   if (global.activeKeys['left'] && !global.activeKeys['right']) {
-    ship.angle -= 10;
+    ship.angle = (ship.angle - 60 + 3600) % 3600;
   } else if (global.activeKeys['right'] && !global.activeKeys['left']) {
-    ship.angle += 10;
+    ship.angle = (ship.angle + 60) % 3600;
   }
+  if (global.activeKeys['forward']) {
+    var radians = ship.angle/1800*Math.PI;
+    ship.vel.x += Math.cos(radians)*ship.thrust;
+    ship.vel.y += Math.sin(radians)*ship.thrust;
+  }
+
+  // Update ship according to eternal forces.
+  ship.vel.x *= (1-ship.friction);
+  ship.vel.y *= (1-ship.friction);
+  ship.pos.x = (ship.pos.x + ship.vel.x + global.width) % global.width;
+  ship.pos.y = (ship.pos.y + ship.vel.y + global.height) % global.height;
+
   context.clearRect(0, 0, canvas.width, canvas.height);
   global.tick += 1;
   var seconds = Math.floor(global.tick);
@@ -91,6 +105,7 @@ SpaceRocks.load = function () {
 		pos: {x: global.width / 2, y: global.height / 2},
 		vel: {x: 0, y: 0},
     angle: 3600,
+    thrust: 0.2, friction: 0.01,
 		plainImage: Sprite.make({x: 70.5, y: 36.5}, {x: 135, y: 63}),
 		thrustImage: Sprite.make({x: 70.5, y: 108.5}, {x: 135, y: 63})
 	};
