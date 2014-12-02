@@ -61,6 +61,9 @@ SpaceRocks.update = function () {
     var radians = ship.angle/1800*Math.PI;
     ship.vel.x += Math.cos(radians)*ship.thrust;
     ship.vel.y += Math.sin(radians)*ship.thrust;
+    ship.underThrust = true;
+  } else {
+    ship.underThrust = false;
   }
 
   // Update ship according to eternal forces.
@@ -85,7 +88,11 @@ SpaceRocks.update = function () {
     var timeString = seconds;
   }
   context.fillText(timeString, 20, 30);
-	ship.plainImage.draw(ship.pos, ship.angle);
+  if (ship.underThrust) {
+    ship.thrustImage.draw(ship.pos, ship.angle);
+  } else {
+    ship.plainImage.draw(ship.pos, ship.angle);
+  }
 };
 
 SpaceRocks.load = function () {
