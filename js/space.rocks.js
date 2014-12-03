@@ -48,7 +48,7 @@ SpaceRocks.keyUpHandler = function (event) {
 SpaceRocks.update = function () {
 	var global = SpaceRocks,
       canvas = global.canvas,
-      context = global.context,
+      context = canvas.context,
       ship = global.ship;
 
   // Update ship in response to user input.
@@ -93,20 +93,22 @@ SpaceRocks.update = function () {
   } else {
     ship.plainImage.draw(ship.pos, ship.angle);
   }
+  if (minutes == 3) {
+    SpaceRocks.stop();
+  }
 };
 
 SpaceRocks.load = function () {
 	var global = SpaceRocks;
 
-	var canvas = document.getElementById('mainCanvas');
-	global.canvas = canvas;
+	var canvas = global.canvas = document.getElementById('mainCanvas');
 	canvas.width = global.width;
 	canvas.height = global.height;
 	var canvasContainer = document.getElementById('mainCanvasContainer');
 	global.canvasContainer = canvasContainer;
 	canvasContainer.style.width = global.width + 'px';
 	canvasContainer.style.height = global.height + 'px';
-	var context = Sprite.context = global.context = canvas.getContext('2d');
+	var context = Sprite.context = canvas.context = canvas.getContext('2d');
 
 	var ship = global.ship = {
 		pos: {x: global.width / 2, y: global.height / 2},
@@ -116,6 +118,11 @@ SpaceRocks.load = function () {
 		plainImage: Sprite.make({x: 70.5, y: 36.5}, {x: 135, y: 63}),
 		thrustImage: Sprite.make({x: 70.5, y: 108.5}, {x: 135, y: 63})
 	};
+
+	var buffer = global.buffer = document.getElementById('bufferCanvas');
+  buffer.width = global.width;
+  buffer.height = global.height;
+  buffer.context = buffer.getContext('2d');
 
   document.onkeydown = global.keyDownHandler;
   document.onkeyup = global.keyUpHandler;
