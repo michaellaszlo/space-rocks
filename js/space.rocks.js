@@ -8,16 +8,17 @@ var Sprite = {
 };
 Sprite.image = new Image();
 Sprite.image.src = Sprite.source;
-Sprite.make = function (center, size) {
-	var sprite = {center: center, size: size},
+Sprite.make = function (center, size, context) {
+	var sprite = {center: center, size: size, context: context},
 			halfSize = {x: size.x/2, y: size.y/2},
-			corner = {x: center.x - size.x/2, y: center.y - size.y/2},
-			context = Sprite.context;
-	sprite.draw = function (position, angle) {
+			corner = {x: center.x - size.x/2, y: center.y - size.y/2};
+	sprite.draw = function (position, angle, scale) {
+    scale = scale || 1;
 		context.translate(position.x, position.y);
 		context.rotate(Math.PI*angle/1800);
-		context.drawImage(Sprite.image, corner.x, corner.y, size.x, size.y,
-				-halfSize.x, -halfSize.y, size.x, size.y);
+		context.drawImage(Sprite.image,
+        corner.x, corner.y, size.x, size.y,
+				-halfSize.x*scale, -halfSize.y*scale, size.x*scale, size.y*scale);
 		context.setTransform(1, 0, 0, 1, 0, 0);
 	};
 	return sprite;
@@ -74,7 +75,7 @@ SpaceRocks.update = function () {
 
   context.clearRect(0, 0, canvas.width, canvas.height);
   global.tick += 1;
-  var seconds = Math.floor(global.tick);
+  var seconds = Math.floor(global.tick/global.hertz);
       minutes = Math.floor(seconds/60),
       hours = Math.floor(minutes/60);
   minutes %= 60;
@@ -108,21 +109,41 @@ SpaceRocks.load = function () {
 	global.canvasContainer = canvasContainer;
 	canvasContainer.style.width = global.width + 'px';
 	canvasContainer.style.height = global.height + 'px';
-	var context = Sprite.context = canvas.context = canvas.getContext('2d');
+	var context = canvas.context = canvas.getContext('2d');
 
 	var ship = global.ship = {
 		pos: {x: global.width / 2, y: global.height / 2},
 		vel: {x: 0, y: 0},
     angle: 3600,
     thrust: 0.2, friction: 0.01,
-		plainImage: Sprite.make({x: 70.5, y: 36.5}, {x: 135, y: 63}),
-		thrustImage: Sprite.make({x: 70.5, y: 108.5}, {x: 135, y: 63})
+		plainImage: Sprite.make({x: 70.5, y: 36.5}, {x: 135, y: 63}, context),
+		thrustImage: Sprite.make({x: 70.5, y: 108.5}, {x: 135, y: 63}, context)
 	};
 
+  // Draw background.
 	var buffer = global.buffer = document.getElementById('bufferCanvas');
   buffer.width = global.width;
   buffer.height = global.height;
   buffer.context = buffer.getContext('2d');
+  buffer.context.fillStyle = '#0f2741';
+  buffer.context.fillRect(0, 0, buffer.width, buffer.height);
+  var numStars = Math.floor(buffer.width*buffer.height/1000),
+      starSize = {x: 64, y:60}, minStarX = 6,
+      numStarTypes = 8,
+      stars = [];
+  for (var i = 0; i < numStarTypes; ++i) {
+    stars.push(Sprite.make(
+  }
+  for (var i = 0; i < numStars; ++i) {
+    var drawCenter = {x: Math.round(Math.random()*buffer.width),
+                      y: Math.round(Math.random()*buffer.height)},
+        starAngle = Math.floor(Math.random()*360),
+        starType = Math.floor(Math.random()*numStarTypes),
+        star = stars[starType];
+        sourceCenter = {x: starSize.x*(0.5 + starType),
+                        y: 150 + 0.5*starSize.y},
+
+  }
 
   document.onkeydown = global.keyDownHandler;
   document.onkeyup = global.keyUpHandler;
