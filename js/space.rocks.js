@@ -1,6 +1,6 @@
 
 var SpaceRocks = {
-	width: 800, height: 600
+	width: 960, height: 720
 };
 
 var Sprite = {
@@ -12,14 +12,22 @@ Sprite.make = function (center, size, context) {
 	var sprite = {center: center, size: size, context: context},
 			halfSize = {x: size.x/2, y: size.y/2},
 			corner = {x: center.x - size.x/2, y: center.y - size.y/2};
-	sprite.draw = function (position, angle, scale) {
-    scale = scale || 1;
+	sprite.draw = function (position, angle, scale, alpha) {
+    scale = (scale === undefined ? 1 : scale);
+    alpha = (alpha === undefined ? 1 : alpha);
+    if (alpha !== 1) {
+      var saveAlpha = context.globalAlpha;
+      context.globalAlpha = alpha;
+    }
 		context.translate(position.x, position.y);
-		context.rotate(Math.PI*angle/1800);
+		context.rotate(angle);
 		context.drawImage(Sprite.image,
         corner.x, corner.y, size.x, size.y,
 				-halfSize.x*scale, -halfSize.y*scale, size.x*scale, size.y*scale);
 		context.setTransform(1, 0, 0, 1, 0, 0);
+    if (alpha !== 1) {
+      context.globalAlpha = saveAlpha;
+    }
 	};
 	return sprite;
 };
@@ -73,7 +81,7 @@ SpaceRocks.update = function () {
   ship.pos.x = (ship.pos.x + ship.vel.x + global.width) % global.width;
   ship.pos.y = (ship.pos.y + ship.vel.y + global.height) % global.height;
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(global.background, 0, 0);
   global.tick += 1;
   var seconds = Math.floor(global.tick/global.hertz);
       minutes = Math.floor(seconds/60),
@@ -90,9 +98,9 @@ SpaceRocks.update = function () {
   }
   context.fillText(timeString, 20, 30);
   if (ship.underThrust) {
-    ship.thrustImage.draw(ship.pos, ship.angle);
+    ship.thrustImage.draw(ship.pos, Math.PI*ship.angle/1800);
   } else {
-    ship.plainImage.draw(ship.pos, ship.angle);
+    ship.plainImage.draw(ship.pos, Math.PI*ship.angle/1800);
   }
   if (minutes == 3) {
     SpaceRocks.stop();
@@ -112,37 +120,43 @@ SpaceRocks.load = function () {
 	var context = canvas.context = canvas.getContext('2d');
 
 	var ship = global.ship = {
-		pos: {x: global.width / 2, y: global.height / 2},
-		vel: {x: 0, y: 0},
+		pos: { x: global.width / 2, y: global.height / 2 },
+		vel: { x: 0, y: 0 },
     angle: 3600,
     thrust: 0.2, friction: 0.01,
-		plainImage: Sprite.make({x: 70.5, y: 36.5}, {x: 135, y: 63}, context),
-		thrustImage: Sprite.make({x: 70.5, y: 108.5}, {x: 135, y: 63}, context)
+		plainImage: Sprite.make({ x: 70.5, y: 36.5 }, { x: 135, y: 63 }, context),
+		thrustImage: Sprite.make({ x: 70.5, y: 108.5 }, { x: 135, y: 63 }, context)
 	};
 
   // Draw background.
-	var buffer = global.buffer = document.getElementById('bufferCanvas');
-  buffer.width = global.width;
-  buffer.height = global.height;
-  buffer.context = buffer.getContext('2d');
-  buffer.context.fillStyle = '#0f2741';
-  buffer.context.fillRect(0, 0, buffer.width, buffer.height);
-  var numStars = Math.floor(buffer.width*buffer.height/1000),
-      starSize = {x: 64, y:60}, minStarX = 6,
-      numStarTypes = 8,
-      stars = [];
+	var background = document.getElementById('backgroundCanvas');
+  global.background = background;
+  background.width = global.width;
+  background.height = global.height;
+  background.context = background.getContext('2d');
+  background.context.fillStyle = '#0f2741';
+  background.context.fillRect(0, 0, background.width, background.height);
+  var numStarTypes = 8,
+      starSprites = [],
+      starSize = { x: 64, y: 60 };
   for (var i = 0; i < numStarTypes; ++i) {
-    stars.push(Sprite.make(
+    starSprites.push(Sprite.make(
+        { x: starSize.x*(0.5 + i), y: 150 + 0.5*starSize.y },
+        starSize, background.context));
   }
+  var numStars = Math.floor(background.width*background.height/1000),
+      maxStarX = 10, minStarX = 3,
+      maxScale = maxStarX / starSize.x, minScale = minStarX / starSize.x,
+      minAlpha = 0.2, maxAlpha = 1;
   for (var i = 0; i < numStars; ++i) {
-    var drawCenter = {x: Math.round(Math.random()*buffer.width),
-                      y: Math.round(Math.random()*buffer.height)},
-        starAngle = Math.floor(Math.random()*360),
+    var position = { x: Math.round(Math.random()*background.width),
+                     y: Math.round(Math.random()*background.height) },
+        angle = Math.floor(Math.random()*2*Math.PI),
+        scaleFactor = Math.random(),
+        scale = minScale + scaleFactor*(maxScale - minScale),
+        alpha = minAlpha + (1-scaleFactor)*(maxAlpha - minAlpha);
         starType = Math.floor(Math.random()*numStarTypes),
-        star = stars[starType];
-        sourceCenter = {x: starSize.x*(0.5 + starType),
-                        y: 150 + 0.5*starSize.y},
-
+    starSprites[starType].draw(position, angle, scale, alpha);
   }
 
   document.onkeydown = global.keyDownHandler;

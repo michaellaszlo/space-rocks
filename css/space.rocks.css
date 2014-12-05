@@ -17,9 +17,6 @@ body {
   left: 10px;
 }
 
-#bufferCanvas {
-	border: 2px solid #eee;
-  position: absolute;
-  top: 650px;
-  left: 60px;
+#backgroundCanvas {
+  display: none;
 }
