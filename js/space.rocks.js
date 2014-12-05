@@ -9,7 +9,7 @@ var Sprite = {
 Sprite.image = new Image();
 Sprite.image.src = Sprite.source;
 Sprite.make = function (center, size, context) {
-	var sprite = {center: center, size: size, context: context},
+	var sprite = { center: center, size: size, context: context },
 			halfSize = {x: size.x/2, y: size.y/2},
 			corner = {x: center.x - size.x/2, y: center.y - size.y/2};
 	sprite.draw = function (position, angle, scale, alpha) {
@@ -30,6 +30,27 @@ Sprite.make = function (center, size, context) {
     }
 	};
 	return sprite;
+};
+
+var Rock = {
+  center: { x: 175, y: 34 }, size: { x: 62, y: 66 }
+};
+Rock.spawn = function (sprite) {
+  if (sprite === undefined) {
+    sprite = Rock.sprite;  // Assuming this was added to Rock. Awful kludge!
+  }
+  var global = SpaceRocks,
+      minRotVel = 3, maxRotVel = 33, rotDir = (Math.random() < 0.5 ? -1 : 1),
+      minSpeed = 0.5, maxSpeed = 2.5,
+      speed = minSpeed + Math.random() * (maxSpeed - minSpeed),
+      dir = Math.random() * 2 * Math.PI;
+  return {
+      pos: { x: global.width * 1/4, y: global.height * 1/4 },
+      vel: { x: Math.cos(dir) * speed, y: Math.sin(dir) * speed },
+      rot: Math.random() * 3600,
+      rotVel: rotDir * (minRotVel + Math.random()*(maxRotVel - minRotVel)),
+      sprite: sprite
+  };
 };
 
 SpaceRocks.keyToAction = {
@@ -58,7 +79,8 @@ SpaceRocks.update = function () {
 	var global = SpaceRocks,
       canvas = global.canvas,
       context = canvas.context,
-      ship = global.ship;
+      ship = global.ship,
+      rocks = global.rocks;
 
   // Update ship in response to user input.
   if (global.activeKeys['left'] && !global.activeKeys['right']) {
@@ -74,14 +96,23 @@ SpaceRocks.update = function () {
   } else {
     ship.underThrust = false;
   }
-
-  // Update ship according to eternal forces.
+  // Update ship according to environmental forces.
   ship.vel.x *= (1-ship.friction);
   ship.vel.y *= (1-ship.friction);
   ship.pos.x = (ship.pos.x + ship.vel.x + global.width) % global.width;
   ship.pos.y = (ship.pos.y + ship.vel.y + global.height) % global.height;
 
+  // Update rocks.
+  for (var i = 0; i < rocks.length; ++i) {
+    var rock = rocks[i];
+    rock.rot = (rock.rot + rock.rotVel + 3600) % 3600;
+    rock.pos.x = (rock.pos.x + rock.vel.x + global.width) % global.width;
+    rock.pos.y = (rock.pos.y + rock.vel.y + global.height) % global.height;
+  }
+
+  // Paint background.
   context.drawImage(global.background, 0, 0);
+  // Display time.
   global.tick += 1;
   var seconds = Math.floor(global.tick/global.hertz);
       minutes = Math.floor(seconds/60),
@@ -97,13 +128,19 @@ SpaceRocks.update = function () {
     var timeString = seconds;
   }
   context.fillText(timeString, 20, 30);
+  // Render ship.
   if (ship.underThrust) {
-    ship.thrustImage.draw(ship.pos, Math.PI*ship.angle/1800);
+    ship.sprite.whoosh.draw(ship.pos, ship.angle*Math.PI/1800);
   } else {
-    ship.plainImage.draw(ship.pos, Math.PI*ship.angle/1800);
+    ship.sprite.cruise.draw(ship.pos, ship.angle*Math.PI/1800);
   }
   if (minutes == 3) {
     SpaceRocks.stop();
+  }
+  // Render rocks.
+  for (var i = 0; i < rocks.length; ++i) {
+    var rock = rocks[i], sprite = rock.sprite;
+    sprite.draw(rock.pos, rock.rot*Math.PI/1800);
   }
 };
 
@@ -124,9 +161,17 @@ SpaceRocks.load = function () {
 		vel: { x: 0, y: 0 },
     angle: 3600,
     thrust: 0.2, friction: 0.01,
-		plainImage: Sprite.make({ x: 70.5, y: 36.5 }, { x: 135, y: 63 }, context),
-		thrustImage: Sprite.make({ x: 70.5, y: 108.5 }, { x: 135, y: 63 }, context)
+    sprite: {
+      cruise: Sprite.make({ x: 70.5, y: 36.5 }, { x: 135, y: 63 }, context),
+      whoosh: Sprite.make({ x: 70.5, y: 108.5 }, { x: 135, y: 63 }, context)
+    }
 	};
+
+  var rocks = global.rocks = [];
+  Rock.sprite = Sprite.make(Rock.center, Rock.size, context);
+  for (var i = 0; i < 6; ++i) {
+    rocks.push(Rock.spawn());
+  }
 
   // Draw background.
 	var background = document.getElementById('backgroundCanvas');
@@ -147,7 +192,7 @@ SpaceRocks.load = function () {
   var numStars = Math.floor(background.width*background.height/1000),
       maxStarX = 10, minStarX = 3,
       maxScale = maxStarX / starSize.x, minScale = minStarX / starSize.x,
-      minAlpha = 0.2, maxAlpha = 1;
+      minAlpha = 0.1, maxAlpha = 0.8;
   for (var i = 0; i < numStars; ++i) {
     var position = { x: Math.round(Math.random()*background.width),
                      y: Math.round(Math.random()*background.height) },
