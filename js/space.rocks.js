@@ -8,10 +8,10 @@ var Sprite = {
 };
 Sprite.image = new Image();
 Sprite.image.src = Sprite.source;
-Sprite.make = function (center, size, context) {
-	var sprite = { center: center, size: size, context: context },
-			halfSize = {x: size.x/2, y: size.y/2},
-			corner = {x: center.x - size.x/2, y: center.y - size.y/2};
+Sprite.make = function (corner, size, context) {
+	var center = { x: corner.x + size.x/2, y: corner.y + size.y/2 },
+      sprite = { center: center, size: size, context: context },
+			halfSize = {x: size.x/2, y: size.y/2};
 	sprite.draw = function (position, angle, scale, alpha) {
     scale = (scale === undefined ? 1 : scale);
     alpha = (alpha === undefined ? 1 : alpha);
@@ -33,7 +33,7 @@ Sprite.make = function (center, size, context) {
 };
 
 var Rock = {
-  center: { x: 175, y: 34 }, size: { x: 62, y: 66 }
+  corner: { x: 144, y: 1 }, size: { x: 62, y: 66 }
 };
 Rock.spawn = function (sprite) {
   if (sprite === undefined) {
@@ -162,13 +162,13 @@ SpaceRocks.load = function () {
     angle: 3600,
     thrust: 0.2, friction: 0.01,
     sprite: {
-      cruise: Sprite.make({ x: 70.5, y: 36.5 }, { x: 135, y: 63 }, context),
-      whoosh: Sprite.make({ x: 70.5, y: 108.5 }, { x: 135, y: 63 }, context)
+      cruise: Sprite.make({ x: 3, y: 5 }, { x: 135, y: 63 }, context),
+      whoosh: Sprite.make({ x: 3, y: 77 }, { x: 135, y: 63 }, context)
     }
 	};
 
   var rocks = global.rocks = [];
-  Rock.sprite = Sprite.make(Rock.center, Rock.size, context);
+  Rock.sprite = Sprite.make(Rock.corner, Rock.size, context);
   for (var i = 0; i < 6; ++i) {
     rocks.push(Rock.spawn());
   }
@@ -186,7 +186,7 @@ SpaceRocks.load = function () {
       starSize = { x: 64, y: 60 };
   for (var i = 0; i < numStarTypes; ++i) {
     starSprites.push(Sprite.make(
-        { x: starSize.x*(0.5 + i), y: 150 + 0.5*starSize.y },
+        { x: i * starSize.x, y: 150 },
         starSize, background.context));
   }
   var numStars = Math.floor(background.width*background.height/1000),
