@@ -8,10 +8,17 @@ var Sprite = {
 };
 Sprite.image = new Image();
 Sprite.image.src = Sprite.source;
-Sprite.make = function (corner, size, context) {
+Sprite.make = function (corner, size, context, points) {
 	var center = { x: corner.x + size.x/2, y: corner.y + size.y/2 },
       sprite = { center: center, size: size, context: context },
-			halfSize = {x: size.x/2, y: size.y/2};
+			halfSize = { x: size.x/2, y: size.y/2 },
+      points = points;
+  if (points !== undefined) {
+    for (var i = 0; i < points.length; ++i) {
+      points[i].x -= halfSize.x - 0.5;
+      points[i].y -= halfSize.y - 0.5;
+    }
+  }
 	sprite.draw = function (position, angle, scale, alpha) {
     scale = (scale === undefined ? 1 : scale);
     alpha = (alpha === undefined ? 1 : alpha);
@@ -24,6 +31,16 @@ Sprite.make = function (corner, size, context) {
 		context.drawImage(Sprite.image,
         corner.x, corner.y, size.x, size.y,
 				-halfSize.x*scale, -halfSize.y*scale, size.x*scale, size.y*scale);
+    if (points !== undefined) {
+      context.beginPath();
+      context.strokeStyle = '#444';
+      var n = points.length;
+      context.moveTo(points[n-1].x, points[n-1].y);
+      for (var i = 0; i < n; ++i) {
+        context.lineTo(points[i].x, points[i].y);
+      }
+      context.stroke();
+    }
 		context.setTransform(1, 0, 0, 1, 0, 0);
     if (alpha !== 1) {
       context.globalAlpha = saveAlpha;
@@ -33,7 +50,16 @@ Sprite.make = function (corner, size, context) {
 };
 
 var Rock = {
-  corner: { x: 144, y: 1 }, size: { x: 62, y: 66 }
+  corner: { x: 144, y: 1 }, size: { x: 62, y: 66 },
+  points: [{ x: 2, y: 37 }, { x: 5, y: 32 }, { x: 5, y: 18 }, { x: 11, y: 12 },
+      { x: 11, y: 11 }, { x: 14, y: 7 }, { x: 16, y: 6 }, { x: 33, y: 6 },
+      { x: 40, y: 2 }, { x: 46, y: 2 }, { x: 48, y: 3 }, { x: 51, y: 5 },
+      { x: 52, y: 11 }, { x: 56, y: 14 }, { x: 58, y: 16 }, { x: 58, y: 22 },
+      { x: 60, y: 24 }, { x: 60, y: 29 }, { x: 58, y: 32 }, { x: 58, y: 36 },
+      { x: 60, y: 41 }, { x: 60, y: 46 }, { x: 59, y: 49 }, { x: 51, y: 57 },
+      { x: 48, y: 58 }, { x: 43, y: 59 }, { x: 37, y: 60 }, { x: 32, y: 61 },
+      { x: 25, y: 63 }, { x: 17, y: 63 }, { x: 14, y: 60 }, { x: 7, y: 60 },
+      { x: 3, y: 57 }, { x: 2, y: 43 }, { x: 2, y: 37 }, { x: 5, y: 32 }]
 };
 Rock.spawn = function (sprite) {
   if (sprite === undefined) {
@@ -168,7 +194,7 @@ SpaceRocks.load = function () {
 	};
 
   var rocks = global.rocks = [];
-  Rock.sprite = Sprite.make(Rock.corner, Rock.size, context);
+  Rock.sprite = Sprite.make(Rock.corner, Rock.size, context, Rock.points);
   for (var i = 0; i < 6; ++i) {
     rocks.push(Rock.spawn());
   }
