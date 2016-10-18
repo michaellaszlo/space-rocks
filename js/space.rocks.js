@@ -148,20 +148,15 @@ SpaceRocks.update = function () {
   if (hours > 0) {
     var timeString = hours + ':' + Math.floor(minutes/10) + minutes%10 + ':' +
         Math.floor(seconds/10) + seconds%10;
-  } else if (minutes > 0) {
-    var timeString = minutes + ':' + Math.floor(seconds/10) + seconds%10;
   } else {
-    var timeString = seconds;
+    var timeString = minutes + ':' + Math.floor(seconds/10) + seconds%10;
   }
-  context.fillText(timeString, 20, 30);
+  context.fillText(timeString, 20, global.height - 20);
   // Render ship.
   if (ship.underThrust) {
     ship.sprite.whoosh.draw(ship.pos, ship.angle*Math.PI/1800);
   } else {
     ship.sprite.cruise.draw(ship.pos, ship.angle*Math.PI/1800);
-  }
-  if (minutes == 3) {
-    SpaceRocks.stop();
   }
   // Render rocks.
   for (var i = 0; i < rocks.length; ++i) {
